@@ -84,7 +84,7 @@ bootstrap() {
   [ -f "$rt/lock" ] && return 0
   : > "$rt/lock" || return 1
   nohup sh -c '
-    rt=$1; wheels=$2
+    rt=$1; wheels=$2; want=$3
     trap "rm -f \"$rt/lock\"" EXIT
     rm -f "$rt/state"
     if ! command -v curl >/dev/null 2>&1; then echo "curl is needed to set up" > "$rt/state"; exit 1; fi
@@ -92,10 +92,41 @@ bootstrap() {
       && "$rt/uv/uv" python install 3.12 \
       && "$rt/uv/uv" venv --python 3.12 "$rt/venv" \
       && "$rt/uv/uv" pip install --no-deps --python "$rt/venv/bin/python" "$wheels"/*.whl \
+      && printf "%s\n" "$want" > "$rt/installed" \
       && echo ready > "$rt/state" || echo failed > "$rt/state"
-  ' sh "$rt" "$plugin/wheels" > "$rt/bootstrap.log" 2>&1 &
+  ' sh "$rt" "$plugin/wheels" "$(plugin_version)" > "$rt/bootstrap.log" 2>&1 &
   return 0
 }
+
+# The plugin's version, from its manifest: what a runtime records as installed.
+plugin_version() {
+  sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$plugin/.claude-plugin/plugin.json" 2>/dev/null | head -1
+}
+
+# A plugin update ships new wheels, and the runtime built for an earlier plugin keeps
+# serving the old code until they are installed (found 2026-09-28: 0.3.2 installed, the
+# 0.3.1 runtime still answering). When the plugin's version is not the one the runtime
+# recorded, the wheels are installed again in the background, under the bootstrap's lock;
+# this event still runs on what is there, and the next one runs on the update.
+refresh_if_stale() {
+  rt=$home/runtime
+  [ -x "$rt/venv/bin/python" ] && [ -x "$rt/uv/uv" ] && [ -d "$plugin/wheels" ] || return 0
+  want=$(plugin_version)
+  [ -n "$want" ] || return 0
+  have=""
+  [ -f "$rt/installed" ] && read -r have < "$rt/installed"
+  [ "$have" = "$want" ] && return 0
+  [ -f "$rt/lock" ] && return 0
+  : > "$rt/lock" || return 0
+  nohup sh -c '
+    rt=$1; wheels=$2; want=$3
+    trap "rm -f \"$rt/lock\"" EXIT
+    "$rt/uv/uv" pip install --no-deps --reinstall --python "$rt/venv/bin/python" "$wheels"/*.whl \
+      && printf "%s\n" "$want" > "$rt/installed"
+  ' sh "$rt" "$plugin/wheels" "$want" > "$rt/update.log" 2>&1 &
+  return 0
+}
+[ -n "$py" ] && refresh_if_stale
 
 # Whether a pending connection's code has expired: its expires_at is before now. Compared as text,
 # which is time order for two UTC instants written the same way (the service's and date's agree
