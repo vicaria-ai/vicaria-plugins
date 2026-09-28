@@ -1,0 +1,180 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "SessionStart"
+            ],
+            "timeout": 15,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "UserPromptSubmit"
+            ],
+            "timeout": 10,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "UserPromptExpansion": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "UserPromptExpansion"
+            ],
+            "timeout": 10,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "PreToolUse"
+            ],
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "PostToolUse"
+            ],
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "PostToolUseFailure"
+            ],
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "SubagentStart"
+            ],
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "SubagentStop"
+            ],
+            "timeout": 15,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "Stop"
+            ],
+            "timeout": 15,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "StopFailure"
+            ],
+            "timeout": 15,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/vc-capture",
+              "SessionEnd"
+            ],
+            "timeout": 60,
+            "async": false
+          }
+        ]
+      }
+    ]
+  }
+}

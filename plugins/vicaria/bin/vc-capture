@@ -1,0 +1,262 @@
+#!/bin/sh
+# vicaria hook shim. A capture that cannot reach its service must never become a session that
+# will not start, so every status here is 0 -- with one exception, below -- and stdout carries
+# nothing but the one answer a hook may give.
+#
+# Commands. The plugin's /vicaria:connect, :on, :off and :status arrive at UserPromptExpansion,
+# and the Python side answers them on stdout with {"continue": false, "stopReason": "<line>"}:
+# Claude Code shows the line and stops the command before it reaches the model. The exception
+# to exit 0 is the older form, /vicaria off typed as a prompt, answered at UserPromptSubmit with
+# exit 2 and the line on stderr.
+#
+# stderr is NOT sent to /dev/null: the older /vicaria off typed as a prompt is answered with
+# exit 2 and its line on stderr, which Claude Code shows, and a hook's failures belong in the
+# developer's debug output rather than nowhere.
+#
+# Which Python. The runtime the plugin installed for itself (~/.vicaria/runtime, RFC 0032 §6)
+# comes first; a developer's pin in ../runtime next; a checkout loaded with --plugin-dir last,
+# resolving smart_gateway and the contracts from sibling checkouts and the path's python3.
+#
+# The first run. On a machine with no runtime, /vicaria:connect does two things at once: it
+# starts the runtime installing itself in the background (uv, Python 3.12, the wheels bundled
+# beside this file), and it asks the service for the person's code with curl, opens the
+# browser and says the code -- so the person types the command once. The Python side finishes
+# the connection at the next hook event, once the runtime is there.
+#
+# When the runtime cannot start, the shim still does not print on every event. It answers the
+# two places a person is looking -- the command they typed, and a session starting on a
+# connected machine -- and stays silent everywhere else, decided by the event hooks.json names,
+# never by what the payload contains: an answer with "continue": false on any other event would
+# stop the session.
+case $0 in
+  */*) here=${0%/*} ;;
+  *) here=. ;;
+esac
+event=${1:-}
+plugin=$(cd "$here/.." 2>/dev/null && pwd)
+home=${VICARIA_HOME:-$HOME/.vicaria}
+# The plugin's own root, for the hook to tell a person's install (one that carries its runtime)
+# from an organization's.
+VICARIA_PLUGIN_ROOT=$plugin
+export VICARIA_PLUGIN_ROOT
+# Builtins only up to the interpreter: a machine without python3 may have little else.
+if [ -n "$plugin" ] && [ -f "$plugin/home" ] && [ -z "${VICARIA_HOME:-}" ]; then
+  read -r home < "$plugin/home"
+  VICARIA_HOME=$home
+  export VICARIA_HOME
+fi
+if [ -n "$plugin" ] && [ -f "$plugin/server" ]; then
+  read -r VICARIA_PLUGIN_SERVER < "$plugin/server"
+  export VICARIA_PLUGIN_SERVER
+fi
+py=""
+[ -x "$home/runtime/venv/bin/python" ] && py="$home/runtime/venv/bin/python"
+if [ -z "$py" ] && [ -n "$plugin" ] && [ -f "$plugin/runtime" ]; then
+  read -r py < "$plugin/runtime"
+fi
+if [ -z "$py" ]; then
+  root=$(cd "$here/../.." 2>/dev/null && pwd)
+  if [ -n "$root" ]; then
+    extra=""
+    [ -d "$root/src/smart_gateway" ] && extra="$root/src"
+    [ -d "$root/../smart-gateway-server/packages/contracts/vicaria_contracts" ] && extra="${extra:+$extra:}$root/../smart-gateway-server/packages/contracts"
+    [ -d "$root/../contracts/vicaria_contracts" ] && extra="${extra:+$extra:}$root/../contracts"
+    [ -n "$extra" ] && { PYTHONPATH="$extra${PYTHONPATH:+:$PYTHONPATH}"; export PYTHONPATH; }
+  fi
+  py=python3
+fi
+
+# One value out of the payload by key, for the fallbacks that run without python. Good for the
+# strings Claude Code sends here (a command name, a URL typed as an argument); not a JSON parser.
+field() {
+  printf '%s' "$2" | sed -n "s/.*\"$1\":[[:space:]]*\"\([^\"]*\)\".*/\1/p" | head -n 1
+}
+
+# The runtime installing itself: detached, once, logged. `uv` fetches Python 3.12 and installs
+# the wheels bundled with the plugin -- with --no-deps, because the client wheel names its
+# contracts dependency by a private git URL, which uv would otherwise try to fetch and then
+# refuse as conflicting with the bundled wheel (seen on the first live run, 2026-09-24). The
+# two wheels are the whole dependency set. The lock keeps two hooks from starting it twice.
+bootstrap() {
+  rt=$home/runtime
+  [ -d "$plugin/wheels" ] || return 1
+  mkdir -p "$rt" 2>/dev/null || return 1
+  [ -f "$rt/lock" ] && return 0
+  : > "$rt/lock" || return 1
+  nohup sh -c '
+    rt=$1; wheels=$2
+    trap "rm -f \"$rt/lock\"" EXIT
+    rm -f "$rt/state"
+    if ! command -v curl >/dev/null 2>&1; then echo "curl is needed to set up" > "$rt/state"; exit 1; fi
+    curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="$rt/uv" UV_NO_MODIFY_PATH=1 sh \
+      && "$rt/uv/uv" python install 3.12 \
+      && "$rt/uv/uv" venv --python 3.12 "$rt/venv" \
+      && "$rt/uv/uv" pip install --no-deps --python "$rt/venv/bin/python" "$wheels"/*.whl \
+      && echo ready > "$rt/state" || echo failed > "$rt/state"
+  ' sh "$rt" "$plugin/wheels" > "$rt/bootstrap.log" 2>&1 &
+  return 0
+}
+
+# Whether a pending connection's code has expired: its expires_at is before now. Compared as text,
+# which is time order for two UTC instants written the same way (the service's and date's agree
+# to the second, and a fraction or an offset after the seconds sorts below the Z). `expr`, not
+# `[[`, because dash has no `[[` and its `test` has no `<`. No expiry, or no `date` or `expr` on
+# the path, is not expired: the code is shown, as it was before this check.
+expired() {
+  expires=$(field expires_at "$1")
+  case $expires in
+    [0-9][0-9][0-9][0-9]-*) ;;
+    *) return 1 ;;
+  esac
+  command -v date >/dev/null 2>&1 && command -v expr >/dev/null 2>&1 || return 1
+  now=$(date -u +%Y-%m-%dT%H:%M:%SZ) || return 1
+  expr "$expires" \< "$now" >/dev/null
+}
+
+answer() { printf '{"continue":false,"stopReason":"%s"}' "$1"; }
+say() { printf '{"systemMessage":"%s"}' "$1"; }
+# A file's text with builtins alone.
+slurp() {
+  text=""
+  while IFS= read -r line || [ -n "$line" ]; do text="$text$line"; done < "$1"
+  printf '%s' "$text"
+}
+
+# /vicaria:connect with no runtime: start the runtime, and get the person their code now.
+connect_without_runtime() {
+  server=$(field command_args "$payload")
+  [ -z "$server" ] && server=${VICARIA_PLUGIN_SERVER:-${VICARIA_SERVER:-}}
+  server=${server%/}
+  case $server in
+    # Written into the JSON line as it is: a quote, a backslash or a space is no address and
+    # would break the line (found in review, for the service's text this block no longer shows).
+    *'"'*|*'\'*|*' '*) answer "vicaria: which server? Type /vicaria:connect followed by the address, for example /vicaria:connect https://app.vicaria.ai"; exit 0 ;;
+    http://*|https://*) ;;
+    *) answer "vicaria: which server? Type /vicaria:connect followed by the address, for example /vicaria:connect https://app.vicaria.ai"; exit 0 ;;
+  esac
+  if [ -f "$home/capture/device.json" ]; then
+    if bootstrap; then answer "vicaria: this computer is already connected; Vicaria is setting itself up here (about a minute, once). After that, each new session says whether it is collected."
+    else answer "vicaria: this computer is connected, but Vicaria can't set itself up from this copy of the plugin. Reinstall the Vicaria plugin."; fi
+    exit 0
+  fi
+  setting_up=""
+  if bootstrap; then setting_up=" Vicaria is also setting itself up on this computer (about a minute, once)."
+  else answer "vicaria: Vicaria can't set itself up from this copy of the plugin. Reinstall it from its marketplace."; exit 0; fi
+  if [ -f "$home/capture/connect.json" ]; then
+    pending=$(slurp "$home/capture/connect.json")
+    if expired "$pending" || [ "$(field server "$pending")" != "$server" ]; then
+      # Nothing polls without the runtime, so an expired code would be shown forever; and a
+      # code exists only on the server that issued it, so one for another address is dropped
+      # (found in review: shown with the new address, it could never be approved there).
+      rm -f "$home/capture/connect.json"
+    else
+      code=$(field user_code "$pending")
+      answer "vicaria: your code is $code. Type it in the browser at $server/app#connect, then keep working: your next prompt here will say Connected.$setting_up"
+      exit 0
+    fi
+  fi
+  command -v curl >/dev/null 2>&1 || { answer "vicaria: curl is needed to connect, and this computer has none."; exit 0; }
+  name=$(scutil --get ComputerName 2>/dev/null || hostname 2>/dev/null | sed 's/\.local$//')
+  name=$(printf '%s' "$name" | tr -d '"\\')
+  version=$(printf '%s' "${AI_AGENT:-}" | sed -n 's/^claude-code_\([0-9][0-9-]*\)_.*/\1/p' | tr '-' '.')
+  body="{\"harness\":\"claude-code\",\"name\":\"${name:-this computer}\""
+  [ -n "$version" ] && body="$body,\"harness_version\":\"$version\""
+  body="$body}"
+  # 4 s: the whole of this runs inside a hook Claude Code kills at 10 s.
+  response=$(curl -sS -m 4 -X POST -H 'content-type: application/json' -d "$body" "$server/device/connect" 2>/dev/null)
+  reached=$?
+  code=$(field user_code "$response"); poll=$(field poll_token "$response"); expires=$(field expires_at "$response")
+  if [ -z "$code" ] || [ -z "$poll" ]; then
+    # The person reads the same plain lines the runtime's connect says; what the service or curl
+    # said goes to stderr, the hook's debug log (found in review: curl's error text and the
+    # service's developer-facing detail reached the person).
+    printf 'vicaria connect: %s answered (curl %s): %.200s\n' "$server" "$reached" "$response" >&2
+    if [ "$reached" -ne 0 ] || [ -z "$response" ]; then
+      answer "vicaria: could not reach $server. Check the address and your connection, then try again."
+    elif [ "$(field error "$response")" = app_not_linkable ]; then
+      answer "vicaria: this app can't connect to Vicaria yet."
+    else
+      answer "vicaria: $server would not start a connection just now. Try again in a moment; if it keeps saying this, check the address."
+    fi
+    exit 0
+  fi
+  umask 077
+  mkdir -p "$home/capture" && printf '{"server":"%s","poll_token":"%s","user_code":"%s","name":"%s","expires_at":"%s","opened_at":"%s"}\n' \
+    "$server" "$poll" "$code" "${name:-this computer}" "$expires" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$home/capture/connect.json"
+  # The code is typed on the site, never carried in the address (see approve_url).
+  url="$server/app#connect"
+  opened=""
+  if command -v open >/dev/null 2>&1; then open "$url" >/dev/null 2>&1 || opened=" at $url"
+  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || opened=" at $url"
+  else opened=" at $url"; fi
+  answer "vicaria: your code is $code. Type it in the browser$opened, then keep working: your next prompt here will say Connected. The code is good for ten minutes.$setting_up"
+  exit 0
+}
+
+# The runtime did not start: answer where someone is looking, and nowhere else.
+fallback() {
+  case $event in
+    UserPromptExpansion)
+      case $(field command_name "$payload") in
+        vicaria:connect) connect_without_runtime ;;
+        vicaria:*)
+          if [ -f "$home/runtime/lock" ]; then answer "vicaria: still setting itself up on this computer (about a minute). Try again shortly."
+          else
+            # What did not happen, for the command that was typed.
+            case $(field command_name "$payload") in
+              vicaria:yes|vicaria:partly|vicaria:no)
+                answer "vicaria: not running on this computer, so your answer wasn't recorded. Type /vicaria:connect to set it up." ;;
+              vicaria:status)
+                answer "vicaria: not running on this computer, so nothing here is collected. Type /vicaria:connect to set it up." ;;
+              *)
+                answer "vicaria: not running on this computer, so nothing was switched. Type /vicaria:connect to set it up." ;;
+            esac
+          fi ;;
+      esac ;;
+    SessionStart)
+      if [ -f "$home/capture/device.json" ]; then
+        if [ -f "$home/runtime/lock" ]; then
+          say "Vicaria: setting itself up on this computer (about a minute, once); this session isn't collected."
+        else
+          say "Vicaria: this computer is connected, but Vicaria can't start here, so this session isn't collected. Type /vicaria:connect to set it up again."
+        fi
+      elif [ -d "$plugin/wheels" ] && [ "$(field source "$payload")" = startup ]; then
+        # A person's install (it carries its runtime) that has not connected yet: the runtime
+        # arrives with /vicaria:connect, so until then this shim is the one to say how.
+        if [ -f "$home/capture/connect.json" ]; then
+          pending=$(slurp "$home/capture/connect.json")
+          if expired "$pending"; then
+            # The runtime that would poll it never finished installing, so this start is the one
+            # place that learns the code is dead: said once, and the request forgotten.
+            rm -f "$home/capture/connect.json"
+            say "Vicaria: the code expired before it was approved. Type /vicaria:connect again to get a new one."
+          else
+            code=$(field user_code "$pending"); server=$(field server "$pending")
+            say "Vicaria: type code $code at $server/app#connect to finish connecting."
+          fi
+        else
+          say "Vicaria is installed. Type /vicaria:connect to turn it on."
+        fi
+      fi ;;
+  esac
+  exit 0
+}
+
+# stdin with builtins alone: a machine with no python3 may have no `cat` on the path either,
+# and the shell's "cat: command not found" on every event would be the noise this shim exists
+# to prevent.
+payload=""
+while IFS= read -r line || [ -n "$line" ]; do payload="$payload$line"; done
+command -v "$py" >/dev/null 2>&1 || fallback "its runtime is missing"
+printf '%s' "$payload" | "$py" -c '
+import sys
+try:
+    from smart_gateway.capture.hook import main
+except Exception:          # not installed, half-installed, too old a Python, a broken dependency
+    sys.exit(3)
+sys.exit(main(sys.argv[1:]))
+' "$event"
+status=$?
+[ "$status" -eq 2 ] && exit 2
+[ "$status" -eq 3 ] && fallback "its runtime could not load"
+exit 0

@@ -1,0 +1,15 @@
+{
+  "name": "vicaria",
+  "owner": {
+    "name": "Vicaria"
+  },
+  "description": "Vicaria: your coding agent's sessions become the settings that work best for your kind of task.",
+  "plugins": [
+    {
+      "name": "vicaria",
+      "source": "./plugins/vicaria",
+      "version": "0.3.1",
+      "description": "Vicaria for Claude Code: connect this computer with /vicaria:connect, and every session is recorded under the consent you gave once on the website until /vicaria:off. /vicaria:feedback up or down, with a comment, marks a reply."
+    }
+  ]
+}
