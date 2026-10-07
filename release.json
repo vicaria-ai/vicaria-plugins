@@ -1,10 +1,14 @@
 {
-  "version": "0.4.8",
-  "verified_date": "2026-10-07",
-  "origin": "Exact installed local marketplace package verified in Codex E2E. Source commit is not embedded in the original bundle; file hashes pin the tested artifact.",
+  "version": "0.4.9",
+  "built_date": "2026-10-07",
+  "source_commits": {
+    "smart-gateway": "95d219e7ddf2d508e444ca304d701cfa9e792ce9",
+    "vicaria-contracts": "6f10c0f8fbb96b6fcc019a422b12f594841adab2"
+  },
+  "capture_schema": "cb.session_event.v7",
   "sha256": {
-    "plugins/vicaria/.claude-plugin/plugin.json": "e7f4f2c38dc28824c0451c7958492c5151dc51e319be36d510aeed24bd9469fd",
-    "plugins/vicaria/.codex-plugin/plugin.json": "c6a450cef7cf2817420a286d0154388f724da8e683398b66d99d1d8248dc7679",
+    "plugins/vicaria/.claude-plugin/plugin.json": "1692618050f44c9ec0e429baf1a9107ed291dd2a55f28c8d79944b670d501e4f",
+    "plugins/vicaria/.codex-plugin/plugin.json": "35260f005aaa0ca312523095a441a51206b6ac6f8725cf95f9f153d8cdb95b37",
     "plugins/vicaria/bin/runtime.sh": "82c90e551e276fcb90c2bf58235c4703cda58a8fa958638e0129c885037b4b63",
     "plugins/vicaria/bin/vc-capture": "4e42973be469f309d06c8f80b58858c9c99b1d09c828aeab6bb3bb6fe863b2bd",
     "plugins/vicaria/commands/connect.md": "6f310380bd8002446fe3fda2ecf7635182fdadbd45ac45643c002755da44f8ab",
@@ -18,7 +22,8 @@
     "plugins/vicaria/hooks/codex.json": "d7a749ee808528c47fb6928af1741534141d2b14a2bac1d95f1656c517aa9e83",
     "plugins/vicaria/hooks/hooks.json": "383f4e81e5798bc911d6d354b555791464d091ab65802c4289ff8edc019d6d18",
     "plugins/vicaria/server": "7d5b894a27392be04373dbd7d1ac2d5629eab8beb146849a4295205735434e23",
-    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "4bd8d9660d93477a84092d2ef166524eac92eac8e566a2ac69c58c7457735071",
-    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "e54619926252a3475b5a078c7e7e81dd15130ada1b911c22737a752ddf925784"
+    "plugins/vicaria/wheels/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "bad23fe1ba5896f5db11be886af864c6cbb393271f88dbc71052f9d9a6b052cf",
+    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "bf2fd7aa05760703146c02975038aaca9704f069998e9622f0d12a3e43dddd13"
   }
 }
