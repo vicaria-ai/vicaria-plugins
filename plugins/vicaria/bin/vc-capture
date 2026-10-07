@@ -13,8 +13,9 @@
 # exit 2 and its line on stderr, which Claude Code shows, and a hook's failures belong in the
 # developer's debug output rather than nowhere.
 #
-# Which Python. The runtime the plugin installed for itself (~/.vicaria/runtime, RFC 0032 §6)
-# comes first; a developer's pin in ../runtime next; a checkout loaded with --plugin-dir last,
+# Which Python. Bundled plugins use separate wheel environments under ~/.vicaria/runtimes,
+# keyed by the release label AND the content of every bundled wheel.
+# Unbundled developer installs keep the legacy runtime, then their ../runtime pin; a checkout last,
 # resolving smart_gateway and the contracts from sibling checkouts and the path's python3.
 #
 # The first run. On a machine with no runtime, /vicaria:connect does two things at once: it
@@ -28,11 +29,18 @@
 # connected machine -- and stays silent everywhere else, decided by the event hooks.json names,
 # never by what the payload contains: an answer with "continue": false on any other event would
 # stop the session.
+#
+# Two harnesses. Claude Code runs this from hooks/hooks.json; Codex from hooks/codex.json, which
+# sets VICARIA_HARNESS=codex. Codex's link is its own, in <home>/harnesses/codex (where the
+# terminal launcher kept it), and each release runtime is shared by the two harnesses. Codex takes its
+# commands typed as a prompt, `vicaria connect`, since it answers an unknown slash command itself
+# before any hook runs; the lines below name them the way each harness takes them.
 case $0 in
   */*) here=${0%/*} ;;
   *) here=. ;;
 esac
 event=${1:-}
+harness=${VICARIA_HARNESS:-claude-code}
 plugin=$(cd "$here/.." 2>/dev/null && pwd)
 home=${VICARIA_HOME:-$HOME/.vicaria}
 # The plugin's own root, for the hook to tell a person's install (one that carries its runtime)
@@ -45,16 +53,51 @@ if [ -n "$plugin" ] && [ -f "$plugin/home" ] && [ -z "${VICARIA_HOME:-}" ]; then
   VICARIA_HOME=$home
   export VICARIA_HOME
 fi
+# The runtime's home, shared by both harnesses; `home` is the link's.
+base=$home
+cmd=/vicaria:
+if [ "$harness" = codex ]; then
+  home=$base/harnesses/codex
+  VICARIA_HOME=$home
+  export VICARIA_HOME VICARIA_HARNESS
+  cmd="vicaria "
+fi
 if [ -n "$plugin" ] && [ -f "$plugin/server" ]; then
   read -r VICARIA_PLUGIN_SERVER < "$plugin/server"
   export VICARIA_PLUGIN_SERVER
 fi
+# Legacy shims can reinstall <base>/runtime in place in either direction. Never use it for
+# a bundled release, even during setup. A contracts-only rebuild under the same
+# label also gets a new slot. Old releases cannot mutate a completed attempt.
+plugin_version() {
+  sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^\"]*\)".*/\1/p' "$plugin/.claude-plugin/plugin.json" 2>/dev/null | head -1
+}
+rt=$base/runtime
+bundled=""
+want=""
+if [ -d "$plugin/wheels" ]; then
+  bundled=1
+  version=$(plugin_version)
+  case $version in
+    ""|*[!a-zA-Z0-9._-]*) : ;;
+    *)
+      if [ -f "$plugin/bin/runtime.sh" ]; then
+        . "$plugin/bin/runtime.sh"
+        want=$(runtime_identity "$plugin/wheels") || want=""
+        [ -n "$want" ] && rt=$base/runtimes/capture-$version-$want
+      fi ;;
+  esac
+fi
 py=""
-[ -x "$home/runtime/venv/bin/python" ] && py="$home/runtime/venv/bin/python"
-if [ -z "$py" ] && [ -n "$plugin" ] && [ -f "$plugin/runtime" ]; then
+if [ -n "$bundled" ]; then
+  [ -n "$want" ] && py=$(runtime_python "$rt" "$want")
+else
+  [ -x "$rt/venv/bin/python" ] && py="$rt/venv/bin/python"
+fi
+if [ -z "$bundled" ] && [ -z "$py" ] && [ -n "$plugin" ] && [ -f "$plugin/runtime" ]; then
   read -r py < "$plugin/runtime"
 fi
-if [ -z "$py" ]; then
+if [ -z "$bundled" ] && [ -z "$py" ]; then
   root=$(cd "$here/../.." 2>/dev/null && pwd)
   if [ -n "$root" ]; then
     extra=""
@@ -72,61 +115,52 @@ field() {
   printf '%s' "$2" | sed -n "s/.*\"$1\":[[:space:]]*\"\([^\"]*\)\".*/\1/p" | head -n 1
 }
 
-# The runtime installing itself: detached, once, logged. `uv` fetches Python 3.12 and installs
-# the wheels bundled with the plugin -- with --no-deps, because the client wheel names its
-# contracts dependency by a private git URL, which uv would otherwise try to fetch and then
-# refuse as conflicting with the bundled wheel (seen on the first live run, 2026-09-24). The
-# two wheels are the whole dependency set. The lock keeps two hooks from starting it twice.
+# Install in a private attempt, then atomically publish a complete interpreter.
+# The lock suppresses ordinary concurrent starts; it is not the integrity gate.
+# A killed installer may leave children behind, which only own their private
+# attempt. Stale-lock recovery cannot make those children mutate a new attempt.
 bootstrap() {
-  rt=$home/runtime
-  [ -d "$plugin/wheels" ] || return 1
+  [ -n "$bundled" ] && [ -n "$want" ] || return 1
   mkdir -p "$rt" 2>/dev/null || return 1
-  [ -f "$rt/lock" ] && return 0
-  : > "$rt/lock" || return 1
+  # Failed installs retry at most once per ten minutes from ordinary hooks.
+  # An explicit connect bypasses this delay so repair is always available.
+  if [ "${1:-}" != force ] && [ -f "$rt/failed" ]; then
+    [ -n "$(find "$rt/failed" -prune -mmin +9 -print 2>/dev/null)" ] || return 1
+  fi
+  if [ -d "$rt/lock" ]; then
+    owner=""
+    [ -f "$rt/lock/pid" ] && read -r owner < "$rt/lock/pid"
+    case $owner in
+      ''|*[!0-9]*)
+        # Give a just-launched child time to publish its pid. A lock whose
+        # creator died before launching is recoverable after two minutes.
+        [ -n "$(find "$rt/lock" -prune -mmin +1 -print 2>/dev/null)" ] || return 0 ;;
+      *)
+        if kill -0 "$owner" 2>/dev/null; then
+          # A recycled PID or a stuck child must not block setup forever.
+          # After ten minutes another private attempt is safe, even if the
+          # old installer is alive; publication still cannot overwrite ready.
+          [ -n "$(find "$rt/lock" -prune -mmin +9 -print 2>/dev/null)" ] || return 0
+        fi ;;
+    esac
+    stale=$rt/stale-lock-$$
+    mv "$rt/lock" "$stale" 2>/dev/null || return 0
+    rm -rf "$stale"
+  fi
+  mkdir "$rt/lock" 2>/dev/null || return 0
+  # The child validates any existing ready target before deciding to rebuild.
   nohup sh -c '
-    rt=$1; wheels=$2; want=$3
-    trap "rm -f \"$rt/lock\"" EXIT
-    rm -f "$rt/state"
-    if ! command -v curl >/dev/null 2>&1; then echo "curl is needed to set up" > "$rt/state"; exit 1; fi
-    curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="$rt/uv" UV_NO_MODIFY_PATH=1 sh \
-      && "$rt/uv/uv" python install 3.12 \
-      && "$rt/uv/uv" venv --python 3.12 "$rt/venv" \
-      && "$rt/uv/uv" pip install --no-deps --python "$rt/venv/bin/python" "$wheels"/*.whl \
-      && printf "%s\n" "$want" > "$rt/installed" \
-      && echo ready > "$rt/state" || echo failed > "$rt/state"
-  ' sh "$rt" "$plugin/wheels" "$(plugin_version)" > "$rt/bootstrap.log" 2>&1 &
+    . "$1"
+    runtime_build "$2" "$3" "$4" "$5"
+  ' sh "$plugin/bin/runtime.sh" "$rt" "$plugin/wheels" "$want" "$base" \
+      > "$rt/bootstrap.log" 2>&1 < /dev/null &
   return 0
 }
-
-# The plugin's version, from its manifest: what a runtime records as installed.
-plugin_version() {
-  sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$plugin/.claude-plugin/plugin.json" 2>/dev/null | head -1
-}
-
-# A plugin update ships new wheels, and the runtime built for an earlier plugin keeps
-# serving the old code until they are installed (found 2026-09-28: 0.3.2 installed, the
-# 0.3.1 runtime still answering). When the plugin's version is not the one the runtime
-# recorded, the wheels are installed again in the background, under the bootstrap's lock;
-# this event still runs on what is there, and the next one runs on the update.
-refresh_if_stale() {
-  rt=$home/runtime
-  [ -x "$rt/venv/bin/python" ] && [ -x "$rt/uv/uv" ] && [ -d "$plugin/wheels" ] || return 0
-  want=$(plugin_version)
-  [ -n "$want" ] || return 0
-  have=""
-  [ -f "$rt/installed" ] && read -r have < "$rt/installed"
-  [ "$have" = "$want" ] && return 0
-  [ -f "$rt/lock" ] && return 0
-  : > "$rt/lock" || return 0
-  nohup sh -c '
-    rt=$1; wheels=$2; want=$3
-    trap "rm -f \"$rt/lock\"" EXIT
-    "$rt/uv/uv" pip install --no-deps --reinstall --python "$rt/venv/bin/python" "$wheels"/*.whl \
-      && printf "%s\n" "$want" > "$rt/installed"
-  ' sh "$rt" "$plugin/wheels" "$want" > "$rt/update.log" 2>&1 &
-  return 0
-}
-[ -n "$py" ] && refresh_if_stale
+# A linked machine needs the new release on upgrade without another connect command. Setup
+# runs in the background within the hook budget; the fallback reports that capture is off.
+if [ -n "$bundled" ] && [ -z "$py" ] && [ -f "$home/capture/device.json" ]; then
+  bootstrap
+fi
 
 # Whether a pending connection's code has expired: its expires_at is before now. Compared as text,
 # which is time order for two UTC instants written the same way (the service's and date's agree
@@ -155,23 +189,23 @@ slurp() {
 
 # /vicaria:connect with no runtime: start the runtime, and get the person their code now.
 connect_without_runtime() {
-  server=$(field command_args "$payload")
+  server=$command_args
   [ -z "$server" ] && server=${VICARIA_PLUGIN_SERVER:-${VICARIA_SERVER:-}}
   server=${server%/}
   case $server in
     # Written into the JSON line as it is: a quote, a backslash or a space is no address and
     # would break the line (found in review, for the service's text this block no longer shows).
-    *'"'*|*'\'*|*' '*) answer "vicaria: which server? Type /vicaria:connect followed by the address, for example /vicaria:connect https://app.vicaria.ai"; exit 0 ;;
+    *'"'*|*'\'*|*' '*) answer "vicaria: which server? Type ${cmd}connect followed by the address, for example ${cmd}connect https://app.vicaria.ai"; exit 0 ;;
     http://*|https://*) ;;
-    *) answer "vicaria: which server? Type /vicaria:connect followed by the address, for example /vicaria:connect https://app.vicaria.ai"; exit 0 ;;
+    *) answer "vicaria: which server? Type ${cmd}connect followed by the address, for example ${cmd}connect https://app.vicaria.ai"; exit 0 ;;
   esac
   if [ -f "$home/capture/device.json" ]; then
-    if bootstrap; then answer "vicaria: this computer is already connected; Vicaria is setting itself up here (about a minute, once). After that, each new session says whether it is collected."
+    if bootstrap force; then answer "vicaria: this computer is already connected; Vicaria is setting itself up here (about a minute, once). After that, each new session says whether it is collected."
     else answer "vicaria: this computer is connected, but Vicaria can't set itself up from this copy of the plugin. Reinstall the Vicaria plugin."; fi
     exit 0
   fi
   setting_up=""
-  if bootstrap; then setting_up=" Vicaria is also setting itself up on this computer (about a minute, once)."
+  if bootstrap force; then setting_up=" Vicaria is also setting itself up on this computer (about a minute, once)."
   else answer "vicaria: Vicaria can't set itself up from this copy of the plugin. Reinstall it from its marketplace."; exit 0; fi
   if [ -f "$home/capture/connect.json" ]; then
     pending=$(slurp "$home/capture/connect.json")
@@ -190,7 +224,7 @@ connect_without_runtime() {
   name=$(scutil --get ComputerName 2>/dev/null || hostname 2>/dev/null | sed 's/\.local$//')
   name=$(printf '%s' "$name" | tr -d '"\\')
   version=$(printf '%s' "${AI_AGENT:-}" | sed -n 's/^claude-code_\([0-9][0-9-]*\)_.*/\1/p' | tr '-' '.')
-  body="{\"harness\":\"claude-code\",\"name\":\"${name:-this computer}\""
+  body="{\"harness\":\"$harness\",\"name\":\"${name:-this computer}\""
   [ -n "$version" ] && body="$body,\"harness_version\":\"$version\""
   body="$body}"
   # 4 s: the whole of this runs inside a hook Claude Code kills at 10 s.
@@ -217,39 +251,77 @@ connect_without_runtime() {
   # The code is typed on the site, never carried in the address (see approve_url).
   url="$server/app#connect"
   opened=""
-  if command -v open >/dev/null 2>&1; then open "$url" >/dev/null 2>&1 || opened=" at $url"
+  # VICARIA_NO_BROWSER (anything but 0): no browser opens, and the line reads the address out.
+  if [ -n "${VICARIA_NO_BROWSER:-}" ] && [ "$VICARIA_NO_BROWSER" != 0 ]; then opened=" at $url"
+  elif command -v open >/dev/null 2>&1; then open "$url" >/dev/null 2>&1 || opened=" at $url"
   elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1 || opened=" at $url"
   else opened=" at $url"; fi
   answer "vicaria: your code is $code. Type it in the browser$opened, then keep working: your next prompt here will say Connected. The code is good for ten minutes.$setting_up"
   exit 0
 }
 
+# The command this event is, as vicaria:<verb>, and its argument: the plugin's command announced
+# at UserPromptExpansion (Claude Code), or for Codex the whole prompt `vicaria <verb> [args]`
+# (`$vicaria` and `vicaria:` too), with arguments only for connect and feedback, as
+# smart_gateway.capture.codex_plugin reads it.
+command_name=""
+command_args=""
+command_of() {
+  if [ "$harness" = codex ]; then
+    [ "$event" = UserPromptSubmit ] || return 0
+    prompt=$(field prompt "$payload")
+    rest=$(printf '%s' "$prompt" | sed -n 's/^[[:space:]]*[$]\{0,1\}[Vv][Ii][Cc][Aa][Rr][Ii][Aa][:[:space:]][[:space:]]*//p')
+    verb=$(printf '%s' "$rest" | sed -n 's/^\([A-Za-z][A-Za-z]*\).*/\1/p' | tr 'A-Z' 'a-z')
+    args=$(printf '%s' "$rest" | sed -n 's/^[A-Za-z][A-Za-z]*[[:space:]]*//p' | sed 's/[[:space:]]*$//')
+    case $verb in
+      connect|feedback) ;;
+      on|off|status|yes|partly|no) [ -z "$args" ] || return 0 ;;
+      *) return 0 ;;
+    esac
+    [ -n "$(printf '%s' "$rest" | sed -n 's/^[A-Za-z][A-Za-z]*\([[:space:]].*\)\{0,1\}$/x/p')" ] || return 0
+    command_name=vicaria:$verb
+    command_args=$args
+  elif [ "$event" = UserPromptExpansion ]; then
+    command_name=$(field command_name "$payload")
+    command_args=$(field command_args "$payload")
+  fi
+}
+
 # The runtime did not start: answer where someone is looking, and nowhere else.
 fallback() {
+  command_of
   case $event in
-    UserPromptExpansion)
-      case $(field command_name "$payload") in
+    UserPromptExpansion|UserPromptSubmit)
+      case $command_name in
         vicaria:connect) connect_without_runtime ;;
         vicaria:*)
-          if [ -f "$home/runtime/lock" ]; then answer "vicaria: still setting itself up on this computer (about a minute). Try again shortly."
+          if [ -e "$rt/lock" ]; then answer "vicaria: still setting itself up on this computer (about a minute). Try again shortly."
           else
             # What did not happen, for the command that was typed.
-            case $(field command_name "$payload") in
+            case $command_name in
               vicaria:yes|vicaria:partly|vicaria:no)
-                answer "vicaria: not running on this computer, so your answer wasn't recorded. Type /vicaria:connect to set it up." ;;
+                answer "vicaria: not running on this computer, so your answer wasn't recorded. Type ${cmd}connect to set it up." ;;
               vicaria:status)
-                answer "vicaria: not running on this computer, so nothing here is collected. Type /vicaria:connect to set it up." ;;
+                answer "vicaria: not running on this computer, so nothing here is collected. Type ${cmd}connect to set it up." ;;
               *)
-                answer "vicaria: not running on this computer, so nothing was switched. Type /vicaria:connect to set it up." ;;
+                answer "vicaria: not running on this computer, so nothing was switched. Type ${cmd}connect to set it up." ;;
             esac
+          fi ;;
+        "")
+          if [ -n "$bundled" ] && [ "$event" = UserPromptSubmit ] && [ -f "$home/capture/device.json" ]; then
+            if [ -e "$rt/lock" ]; then
+              say "Vicaria: this prompt isn't collected while Vicaria is setting itself up. Type ${cmd}status before continuing."
+            else
+              say "Vicaria: this prompt isn't collected because Vicaria can't start here. Type ${cmd}connect to try setup again."
+            fi
           fi ;;
       esac ;;
     SessionStart)
       if [ -f "$home/capture/device.json" ]; then
-        if [ -f "$home/runtime/lock" ]; then
+        if [ -e "$rt/lock" ]; then
           say "Vicaria: setting itself up on this computer (about a minute, once); this session isn't collected."
         else
-          say "Vicaria: this computer is connected, but Vicaria can't start here, so this session isn't collected. Type /vicaria:connect to set it up again."
+          say "Vicaria: this computer is connected, but Vicaria can't start here, so this session isn't collected. Type ${cmd}connect to set it up again."
         fi
       elif [ -d "$plugin/wheels" ] && [ "$(field source "$payload")" = startup ]; then
         # A person's install (it carries its runtime) that has not connected yet: the runtime
@@ -260,13 +332,13 @@ fallback() {
             # The runtime that would poll it never finished installing, so this start is the one
             # place that learns the code is dead: said once, and the request forgotten.
             rm -f "$home/capture/connect.json"
-            say "Vicaria: the code expired before it was approved. Type /vicaria:connect again to get a new one."
+            say "Vicaria: the code expired before it was approved. Type ${cmd}connect again to get a new one."
           else
             code=$(field user_code "$pending"); server=$(field server "$pending")
             say "Vicaria: type code $code at $server/app#connect to finish connecting."
           fi
         else
-          say "Vicaria is installed. Type /vicaria:connect to turn it on."
+          say "Vicaria is installed. Type ${cmd}connect to turn it on."
         fi
       fi ;;
   esac
@@ -278,7 +350,7 @@ fallback() {
 # to prevent.
 payload=""
 while IFS= read -r line || [ -n "$line" ]; do payload="$payload$line"; done
-command -v "$py" >/dev/null 2>&1 || fallback "its runtime is missing"
+[ -n "$py" ] && command -v "$py" >/dev/null 2>&1 || fallback "its runtime is missing"
 printf '%s' "$payload" | "$py" -c '
 import sys
 try:
@@ -289,5 +361,8 @@ sys.exit(main(sys.argv[1:]))
 ' "$event"
 status=$?
 [ "$status" -eq 2 ] && exit 2
-[ "$status" -eq 3 ] && fallback "its runtime could not load"
+if [ "$status" -eq 3 ]; then
+  bootstrap
+  fallback "its runtime could not load"
+fi
 exit 0

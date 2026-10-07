@@ -1,0 +1,21 @@
+{
+  "name": "vicaria",
+  "interface": {
+    "displayName": "Vicaria"
+  },
+  "plugins": [
+    {
+      "name": "vicaria",
+      "source": {
+        "source": "local",
+        "path": "./plugins/vicaria"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity",
+      "description": "Vicaria for Codex: type vicaria connect once, and every session is recorded under the consent you gave on the website until vicaria off. vicaria feedback up or down, with a comment, marks a reply."
+    }
+  ]
+}
