@@ -72,14 +72,14 @@ This package is built by
 [smart-gateway](https://github.com/vicaria-ai/smart-gateway)'s
 `tools/build_plugin_marketplace.py`. Both harnesses use the bundled Python
 wheels; each bundle selects its own immutable runtime. `release.json` records
-the hashes of the 0.4.8 package verified on 2026-10-07.
+the source commits and hashes of the 0.4.9 package built on 2026-10-07.
+This release emits `cb.session_event.v7`.
 
-An independent rebuild on 2026-10-07 verified that every file inside both wheels
-matches client commit `d93d1e961d33d698e0a718970fc711c92cc6dd11` and contracts commit
-`26dbd0ef90dc5acfe9d82bb69b52005b62c12287`. This release emits
-`cb.session_event.v6`.
-
-Connecting enables capture. Live configuration advice additionally requires an
-advisor connection and supported evidence; this package alone does not provision
-the personal device-to-advisor path. A collected trajectory is not proof that a
+Codex requests advice through its existing device connection while the session
+is collecting. The server must provide the device advice endpoint, an active
+workspace membership, and an advisor policy. Existing organization control
+configurations remain authoritative. A recommendation is shown only when the
+evidence supports a change; Codex model and effort recommendations are suggestions.
+An unchanged decision is still recorded by the server and can be inspected in
+the authorized debug view. A collected trajectory alone is not proof that a
 recommendation was requested or returned.
