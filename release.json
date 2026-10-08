@@ -22,7 +22,7 @@
     "plugins/vicaria/hooks/codex.json": "d7a749ee808528c47fb6928af1741534141d2b14a2bac1d95f1656c517aa9e83",
     "plugins/vicaria/hooks/hooks.json": "383f4e81e5798bc911d6d354b555791464d091ab65802c4289ff8edc019d6d18",
     "plugins/vicaria/server": "7d5b894a27392be04373dbd7d1ac2d5629eab8beb146849a4295205735434e23",
-    "plugins/vicaria/wheels/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+    "plugins/vicaria/wheels/idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
     "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "bad23fe1ba5896f5db11be886af864c6cbb393271f88dbc71052f9d9a6b052cf",
     "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "bf2fd7aa05760703146c02975038aaca9704f069998e9622f0d12a3e43dddd13"
   }
