@@ -1,14 +1,14 @@
 {
-  "version": "0.4.11",
-  "built_date": "2026-10-07",
+  "version": "0.4.12",
+  "built_date": "2026-10-08",
   "source_commits": {
-    "smart-gateway": "9862435005e3dca9a2a5783ba8db08f47d096801",
+    "smart-gateway": "684f6323940c7b997be46a5086caed23f1e080ed",
     "vicaria-contracts": "6f10c0f8fbb96b6fcc019a422b12f594841adab2"
   },
   "capture_schema": "cb.session_event.v7",
   "sha256": {
-    "plugins/vicaria/.claude-plugin/plugin.json": "aa4c52f670b21cad7799bf84e5a20aa966539580912d4e8201603d9345beb96e",
-    "plugins/vicaria/.codex-plugin/plugin.json": "eccd161abbe41fbaa5dfce5088656b9d5fa3c1b7178977e5f8a9d7672548f89e",
+    "plugins/vicaria/.claude-plugin/plugin.json": "6a74b387100d5eecce51c1440d871c958ce0b284e0f8bc293b85b17b808371eb",
+    "plugins/vicaria/.codex-plugin/plugin.json": "e1fc23e3ecd9ec34a0eb579d4efac173fc00f58ceacedc80887bba8d9061df00",
     "plugins/vicaria/bin/runtime.sh": "82c90e551e276fcb90c2bf58235c4703cda58a8fa958638e0129c885037b4b63",
     "plugins/vicaria/bin/vc-capture": "24cf4634bc81407a43b3a58651b17d8b1fae43aeede38317d6b079aff4cbb1f9",
     "plugins/vicaria/commands/connect.md": "7b3b48f9685854ebae3fa0584d813a082c074d03ab4ede0312710e9ae206b44f",
@@ -23,7 +23,7 @@
     "plugins/vicaria/hooks/hooks.json": "383f4e81e5798bc911d6d354b555791464d091ab65802c4289ff8edc019d6d18",
     "plugins/vicaria/server": "7d5b894a27392be04373dbd7d1ac2d5629eab8beb146849a4295205735434e23",
     "plugins/vicaria/wheels/idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
-    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "347ba56fc8f66fd9d8c7af5975a0983de508adea5b408718d685b989ce024504",
+    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "36c599366719837fbe2398844d03871db2bda0ae10567d3515744c3f1511ce78",
     "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "818a1fcd093f20ba335cbbbb990047e454d0174029048d2e60e4982479c37c33"
   }
 }
