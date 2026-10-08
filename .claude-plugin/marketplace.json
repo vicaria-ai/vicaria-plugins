@@ -8,7 +8,7 @@
     {
       "name": "vicaria",
       "source": "./plugins/vicaria",
-      "version": "0.4.10",
+      "version": "0.4.11",
       "description": "Vicaria for Claude Code: connect this computer with /vicaria:connect, and every session is recorded under the consent you gave once on the website until /vicaria:off. /vicaria:feedback up or down, with a comment, marks a reply."
     }
   ]
