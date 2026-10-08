@@ -4,8 +4,9 @@
 # nothing but the one answer a hook may give.
 #
 # Commands. The plugin's /vicaria:connect, :on, :off and :status arrive at UserPromptExpansion,
-# and the Python side answers them on stdout with {"continue": false, "stopReason": "<line>"}:
-# Claude Code shows the line and stops the command before it reaches the model. The exception
+# and, in Desktop, stdout supplies their result for the command template to repeat.
+# A normal reply avoids Desktop's hidden stopReason message. The CLI and Codex keep their
+# {"continue": false, "stopReason": "<line>"} response. The exception
 # to exit 0 is the older form, /vicaria off typed as a prompt, answered at UserPromptSubmit with
 # exit 2 and the line on stderr.
 #
@@ -178,7 +179,17 @@ expired() {
   expr "$expires" \< "$now" >/dev/null
 }
 
-answer() { printf '{"continue":false,"stopReason":"%s"}' "$1"; }
+answer() {
+  desktop=""
+  case ${CLAUDE_CODE_ENTRYPOINT:-} in claude-desktop|claude-desktop-3p) desktop=1 ;; esac
+  if [ "$harness" = claude-code ] && [ "$event" = UserPromptExpansion ] && [ -n "$desktop" ]; then
+    # Plain hook context reaches Claude Desktop even when stopReason is hidden.
+    # The command template repeats this result; the action has already run here.
+    printf 'VICARIA_COMMAND_RESULT %s\n%s\n' "$command_name" "$1"
+  else
+    printf '{"continue":false,"stopReason":"%s"}' "$1"
+  fi
+}
 say() { printf '{"systemMessage":"%s"}' "$1"; }
 # A file's text with builtins alone.
 slurp() {
