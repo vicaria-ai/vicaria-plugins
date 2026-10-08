@@ -66,13 +66,37 @@ These instructions use the local Claude Code terminal, desktop, or IDE session.
 Claude's cloud sessions do not load plugins installed on your computer. See
 [Claude Code's installation guide](https://code.claude.com/docs/en/discover-plugins).
 
+### Updating an existing installation
+
+In Terminal, run:
+
+```sh
+claude plugin marketplace update vicaria
+claude plugin update vicaria@vicaria --scope user
+claude plugin list
+```
+
+Check that Vicaria is version **0.4.10** or newer, fully quit and reopen Claude
+Desktop, then start a new **Code → Local** session and run `/vicaria:connect`.
+Use the Code tab, not a regular Chat or Cowork conversation.
+
+Version 0.4.10 passes locally computed command results to Claude Desktop as
+normal chat replies, avoiding its hidden hook-message channel. The code comes
+from the plugin on your computer; it is not sent by email. Enter that code on
+the Vicaria page that opened, then run `/vicaria:status` in the same session.
+
+Desktop needs an available Claude response to display the result. If you hit
+a Claude usage limit or still see no reply, open `claude` in Terminal on the
+same computer and run `/vicaria:connect` there. The terminal displays the code
+locally without a model response. Approve it, then return to Desktop.
+
 ## Release and scope
 
 This package is built by
 [smart-gateway](https://github.com/vicaria-ai/smart-gateway)'s
 `tools/build_plugin_marketplace.py`. Both harnesses use the bundled Python
 wheels; each bundle selects its own immutable runtime. `release.json` records
-the source commits and hashes of the 0.4.9 package built on 2026-10-07.
+the source commits and hashes of the 0.4.10 package built on 2026-10-07.
 This release emits `cb.session_event.v7`.
 
 Codex requests advice through its existing device connection while the session

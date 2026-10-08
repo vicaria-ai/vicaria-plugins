@@ -1,29 +1,29 @@
 {
-  "version": "0.4.9",
+  "version": "0.4.10",
   "built_date": "2026-10-07",
   "source_commits": {
-    "smart-gateway": "95d219e7ddf2d508e444ca304d701cfa9e792ce9",
+    "smart-gateway": "87c3378ad1258e6defac0c139f192ccc3f38d076",
     "vicaria-contracts": "6f10c0f8fbb96b6fcc019a422b12f594841adab2"
   },
   "capture_schema": "cb.session_event.v7",
   "sha256": {
-    "plugins/vicaria/.claude-plugin/plugin.json": "1692618050f44c9ec0e429baf1a9107ed291dd2a55f28c8d79944b670d501e4f",
-    "plugins/vicaria/.codex-plugin/plugin.json": "35260f005aaa0ca312523095a441a51206b6ac6f8725cf95f9f153d8cdb95b37",
+    "plugins/vicaria/.claude-plugin/plugin.json": "c7b60b94913ac8cec04700749a3e4b2ced0960f4c6baf14ca4622bd6777322f8",
+    "plugins/vicaria/.codex-plugin/plugin.json": "9305bd1b8bb806e8acd37974dae574e71a9d2d6b625be45507edb3ed2d8113a3",
     "plugins/vicaria/bin/runtime.sh": "82c90e551e276fcb90c2bf58235c4703cda58a8fa958638e0129c885037b4b63",
-    "plugins/vicaria/bin/vc-capture": "4e42973be469f309d06c8f80b58858c9c99b1d09c828aeab6bb3bb6fe863b2bd",
-    "plugins/vicaria/commands/connect.md": "6f310380bd8002446fe3fda2ecf7635182fdadbd45ac45643c002755da44f8ab",
-    "plugins/vicaria/commands/feedback.md": "e6fa802ba302b91d52d4992b75b14005739ff14ba8a6059870c2c31e16fea7a7",
-    "plugins/vicaria/commands/no.md": "d894f65f27a5e462b017ae0cbeac9a79b1b7c436b2fce478ed892b1b0480ceac",
-    "plugins/vicaria/commands/off.md": "c9cd4a297c9146accacc459008dd6979a8da03782588c6980e360bec6d475b27",
-    "plugins/vicaria/commands/on.md": "e4984c64d09c0e99c1cdbba699020a5b6c8385e2a4b068190b361b3e71f492f1",
-    "plugins/vicaria/commands/partly.md": "54a03b62fdfc4fde151d27230eb2a3e4050ae9bb280e7b768922a0f2017b59e8",
-    "plugins/vicaria/commands/status.md": "e4a4118ac8bc61a00da236fe8fd959883a5a6d93864b63182a4f058e60012035",
-    "plugins/vicaria/commands/yes.md": "2d6b3f63d1decaedb2bf1e9e3cb9939ead21efa0c9c441830e9256bce2faa79f",
+    "plugins/vicaria/bin/vc-capture": "24cf4634bc81407a43b3a58651b17d8b1fae43aeede38317d6b079aff4cbb1f9",
+    "plugins/vicaria/commands/connect.md": "7b3b48f9685854ebae3fa0584d813a082c074d03ab4ede0312710e9ae206b44f",
+    "plugins/vicaria/commands/feedback.md": "4dd0fce2cf44ecfea012437654e52e73d03b17abe842b49e3b8c2e794ee14c7e",
+    "plugins/vicaria/commands/no.md": "5e68f951021b11fc909cc4ea40f373f938c4a32d22498a792470a584196aa172",
+    "plugins/vicaria/commands/off.md": "3cefdc41c451f62e92d7808fcc71bbf47722d18bd6d4a29d7310a693a4a92a1f",
+    "plugins/vicaria/commands/on.md": "dbb348b5f8bce4562e4734ab8f174b937337afde79962cfc6650b7749fb4bcc3",
+    "plugins/vicaria/commands/partly.md": "d8aea2102552f8c3babda04dbee7ef7054453a963e788190c753ea4f54f704d0",
+    "plugins/vicaria/commands/status.md": "832759e43cb295d1b7b68256be6ee827654ff1437ff4b3860c59d59be7d4da3a",
+    "plugins/vicaria/commands/yes.md": "64d69cb9374a2b20e95c426b2a543dee6d95be75e94a424ee566e0c409591a2f",
     "plugins/vicaria/hooks/codex.json": "d7a749ee808528c47fb6928af1741534141d2b14a2bac1d95f1656c517aa9e83",
     "plugins/vicaria/hooks/hooks.json": "383f4e81e5798bc911d6d354b555791464d091ab65802c4289ff8edc019d6d18",
     "plugins/vicaria/server": "7d5b894a27392be04373dbd7d1ac2d5629eab8beb146849a4295205735434e23",
     "plugins/vicaria/wheels/idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
-    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "bad23fe1ba5896f5db11be886af864c6cbb393271f88dbc71052f9d9a6b052cf",
-    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "bf2fd7aa05760703146c02975038aaca9704f069998e9622f0d12a3e43dddd13"
+    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "3720411835143c37e0e58826f5d61b723d47cb0935b21ebbc619032aa0889954",
+    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "818a1fcd093f20ba335cbbbb990047e454d0174029048d2e60e4982479c37c33"
   }
 }
