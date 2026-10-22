@@ -285,7 +285,7 @@ command_of() {
     verb=$(printf '%s' "$rest" | sed -n 's/^\([A-Za-z][A-Za-z]*\).*/\1/p' | tr 'A-Z' 'a-z')
     args=$(printf '%s' "$rest" | sed -n 's/^[A-Za-z][A-Za-z]*[[:space:]]*//p' | sed 's/[[:space:]]*$//')
     case $verb in
-      connect|feedback) ;;
+      connect|feedback|apply) ;;
       on|off|status|yes|partly|no) [ -z "$args" ] || return 0 ;;
       *) return 0 ;;
     esac

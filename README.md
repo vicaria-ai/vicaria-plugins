@@ -27,7 +27,9 @@ vicaria connect https://app.vicaria.ai
 Approve the displayed code in the browser when linking a new computer. An
 already linked computer keeps its connection. Continue with an ordinary task.
 
-- `vicaria status` reports the connection and local capture queue.
+- `vicaria status` reports the connection, local capture queue and the matching turn reports for your last applied configuration.
+- `vicaria apply` previews a saved suggestion; `vicaria apply yes <code>` applies it to user defaults for new sessions.
+- `vicaria apply undo` works locally, even after unlinking. If an interrupted operation has mixed managed settings, `vicaria apply recover` previews a confirmation-bound discard option.
 - `vicaria off` pauses this session; `vicaria on` resumes it.
 - `vicaria feedback up` or `down`, optionally followed by a comment, marks a reply.
 - `vicaria yes`, `vicaria partly`, and `vicaria no` answer the task-outcome question.
@@ -59,6 +61,8 @@ Then type `/vicaria:connect` in Claude Code. Approve the displayed code at
 <https://app.vicaria.ai> while signed in with your invited Google account. Your
 next prompt completes the connection; `/vicaria:status` checks it. Captured tasks
 appear on the website after you work with the agent.
+Use `/vicaria:apply` to preview a saved suggestion, `/vicaria:apply yes <code>` to apply the exact preview, and `/vicaria:apply undo` to restore previous values. Start a new session after applying.
+
 The controls are `/vicaria:status`, `/vicaria:off`, `/vicaria:on`,
 `/vicaria:feedback`, `/vicaria:yes`, `/vicaria:partly`, and `/vicaria:no`.
 
@@ -76,7 +80,7 @@ claude plugin update vicaria@vicaria --scope user
 claude plugin list
 ```
 
-Check that Vicaria is version **0.4.13** or newer, fully quit and reopen Claude
+Check that Vicaria is version **0.4.16** or newer, fully quit and reopen Claude
 Desktop, then start a new **Code → Local** session and run `/vicaria:connect`.
 Use the Code tab, not a regular Chat or Cowork conversation.
 
@@ -112,15 +116,11 @@ locally without a model response. Approve it, then return to Desktop.
 This package is built by
 [smart-gateway](https://github.com/vicaria-ai/smart-gateway)'s
 `tools/build_plugin_marketplace.py`. Both harnesses use the bundled Python
-wheels; each bundle selects its own immutable runtime. `release.json` records
-the source commits and hashes of the 0.4.13 package built on 2026-10-09.
+wheels; each bundle selects its own immutable runtime. `release.json` records the source commits and hashes of the 0.4.16 package, built on 2026-10-22.
 This release emits `cb.session_event.v7`.
 
-Codex requests advice through its existing device connection while the session
-is collecting. The server must provide the device advice endpoint, an active
-workspace membership, and an advisor policy. Existing organization control
-configurations remain authoritative. A recommendation is shown only when the
-evidence supports a change; Codex model and effort recommendations are suggestions.
-An unchanged decision is still recorded by the server and can be inspected in
-the authorized debug view. A collected trajectory alone is not proof that a
-recommendation was requested or returned.
+Both harnesses request configuration suggestions through their existing device connection while collecting. A supported response may propose model, effort and a working lesson. Configured test arms are labeled **configured**; they are not evidence-backed recommendations. An unchanged or refused decision does not authorize a settings change, and a policy refusal is displayed with the allowed models.
+
+Apply always requires a preview and explicit confirmation. It changes native user settings for the next session, preserves provider/authentication and unrelated settings, and retains private local undo information. Project/profile/command-line overrides may win; status reports what the matching session or turn actually reports. Model/effort reports and lesson delivery are distinguished from provider-request evidence: matching reports do not prove the request body. Codex's recovery journal contains local configuration backups at 0600; it is not uploaded as raw capture telemetry.
+
+Version 0.4.16 integrates recommendation display and explicit apply/undo/status for Claude Code and Codex on the current shared client core. It also includes the previously merged capture/SDK work from source main; this package still emits `cb.session_event.v7`. Applying a configured arm proves the mechanism, not that it improves task quality.
