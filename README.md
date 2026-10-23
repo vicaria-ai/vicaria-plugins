@@ -80,7 +80,7 @@ claude plugin update vicaria@vicaria --scope user
 claude plugin list
 ```
 
-Check that Vicaria is version **0.4.16** or newer, fully quit and reopen Claude
+Check that Vicaria is version **0.4.17** or newer, fully quit and reopen Claude
 Desktop, then start a new **Code → Local** session and run `/vicaria:connect`.
 Use the Code tab, not a regular Chat or Cowork conversation.
 
@@ -111,16 +111,23 @@ a Claude usage limit or still see no reply, open `claude` in Terminal on the
 same computer and run `/vicaria:connect` there. The terminal displays the code
 locally without a model response. Approve it, then return to Desktop.
 
+Version 0.4.17 improves capture recovery after slow uploads and interrupted sessions.
+Captured text containing U+0000 is recorded with U+FFFD, with explicit replacement
+metadata; IDs and protocol fields are unchanged. Older queued events receive the
+same repair before upload. A confirmed document refusal is retained locally with
+its receipt so valid events can continue. Existing connections are kept. Backlog
+uploads still need later hooks and remain limited by server response times.
+
 ## Release and scope
 
 This package is built by
 [smart-gateway](https://github.com/vicaria-ai/smart-gateway)'s
 `tools/build_plugin_marketplace.py`. Both harnesses use the bundled Python
-wheels; each bundle selects its own immutable runtime. `release.json` records the source commits and hashes of the 0.4.16 package, built on 2026-10-22.
+wheels; each bundle selects its own immutable runtime. `release.json` records the source commits and hashes of the 0.4.17 package, built on 2026-10-23.
 This release emits `cb.session_event.v7`.
 
 Both harnesses request configuration suggestions through their existing device connection while collecting. A supported response may propose model, effort and a working lesson. Configured test arms are labeled **configured**; they are not evidence-backed recommendations. An unchanged or refused decision does not authorize a settings change, and a policy refusal is displayed with the allowed models.
 
 Apply always requires a preview and explicit confirmation. It changes native user settings for the next session, preserves provider/authentication and unrelated settings, and retains private local undo information. Project/profile/command-line overrides may win; status reports what the matching session or turn actually reports. Model/effort reports and lesson delivery are distinguished from provider-request evidence: matching reports do not prove the request body. Codex's recovery journal contains local configuration backups at 0600; it is not uploaded as raw capture telemetry.
 
-Version 0.4.16 integrates recommendation display and explicit apply/undo/status for Claude Code and Codex on the current shared client core. It also includes the previously merged capture/SDK work from source main; this package still emits `cb.session_event.v7`. Applying a configured arm proves the mechanism, not that it improves task quality.
+Version 0.4.17 integrates recommendation display and explicit apply/undo/status for Claude Code and Codex on the current shared client core. It also includes the previously merged capture/SDK work from source main; this package still emits `cb.session_event.v7`. Applying a configured arm proves the mechanism, not that it improves task quality.
