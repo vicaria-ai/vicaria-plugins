@@ -1,44 +1,35 @@
 {
-  "version": "0.4.16",
-  "built_date": "2026-10-22",
+  "version": "0.4.17",
+  "built_date": "2026-10-23",
   "source_commits": {
-    "smart-gateway": "07779d8cfb543cc9b0334d7c0dd76b653da1316c",
+    "smart-gateway": "2797308e1d4fc9f9404dc548dfe5668c185f3804",
     "vicaria-contracts": "26c082daafbbd032efe18db4bb94fda19e39ea17"
   },
-  "source_date_epoch": 1792708738,
+  "source_date_epoch": 1792781810,
   "capture_schema": "cb.session_event.v7",
-  "source_main": "bd710ce4934e74c74cbe915190ad15578a386da2",
   "feature_heads": {
-    "107": "a69bb30232a31e568ce2b09cfc453f3c8df66acc",
-    "108": "6ad387498929a7a5ea4b15bb69fc6dcd4bf7bcd7",
-    "109": "2382b4404db0a3573604fd206883ae03655a687e"
-  },
-  "required_server": {
-    "pr": 295,
-    "head": "2f1ba8222a40ba9d24960efaa6e14ab81fc8b42a"
+    "111": "0df5c58d7c839fcd80ee1de80d12b65ec4518745",
+    "112": "d18724f8a0cc432f3a49b32d2e15c4fcc747297b"
   },
   "publication_requires": [
-    "Jeff review of this exact release candidate",
-    "Server change live",
-    "James release approval"
+    "James ship 0.4.17 approval (recorded)",
+    "Jeff exact-package check"
   ],
   "validation": {
-    "source_tests": 554,
-    "lint_and_format": "PASS",
+    "source_capture_tests": 231,
+    "independent_recovery_probes": 3,
     "two_builds_byte_identical": true,
-    "source_python_files_checked": 114,
+    "wheel_source_files_checked": 185,
     "native_loopback_request": true,
     "native_undo_exact": true,
-    "installed_http_configured_apply_undo": true,
-    "hosted_clean_profile_walk": "pending after release; user approves device codes",
-    "installed_wheel_tests": 168
+    "live_backlog_drain_verified": false
   },
   "sha256": {
     ".agents/plugins/marketplace.json": "dbed4bcc8046bd151ee8e09eded180eead996120749607568653adeca5eb25a6",
-    ".claude-plugin/marketplace.json": "f1df0026f35fb495457d1422089acb84d81da24ed8916a4fe5a6fc6bbba437f4",
-    "README.md": "f5073e83720ec144bd8ad2ef9059061979860421ac76ec317928b463800799af",
-    "plugins/vicaria/.claude-plugin/plugin.json": "7bca136e6de99008b9f632b593961a77d05a12a1d6dde39138a32088d0f9c53e",
-    "plugins/vicaria/.codex-plugin/plugin.json": "84f3e8c0c8f90c3416a303935feaa22f6bdbefe8b8bf12d7d026547a40876ef0",
+    ".claude-plugin/marketplace.json": "ea6b11b3741c41ce22885e692f75ce1d09d0906831881477407b484eab037455",
+    "README.md": "12da988761dc2150157d010751c88e6279e6a10a1011b3ff3b39916a83e892cd",
+    "plugins/vicaria/.claude-plugin/plugin.json": "a51f1e21147b69cdbc41778d1f526fa5391dd6e4679bd71ff4914dd9b92f6b8f",
+    "plugins/vicaria/.codex-plugin/plugin.json": "1a3319e5e246338f7ff7beb815447bafcf1633f5b050cd276a7b7803e25d2dc1",
     "plugins/vicaria/bin/runtime.sh": "82c90e551e276fcb90c2bf58235c4703cda58a8fa958638e0129c885037b4b63",
     "plugins/vicaria/bin/vc-capture": "0aebda39492a7a7105532c9a2c594c21b62d2f190610733e0b9d26da9eb10603",
     "plugins/vicaria/commands/apply.md": "d1106331cf01ebb1e0fbbdfc6cf7946093c5de51deba2d259241b4b9c3668c09",
@@ -55,7 +46,7 @@
     "plugins/vicaria/server": "7d5b894a27392be04373dbd7d1ac2d5629eab8beb146849a4295205735434e23",
     "plugins/vicaria/wheels/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
     "plugins/vicaria/wheels/idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
-    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "74f8a2683448fac638afb926b1a435d914806b69ad5c27b98ea86633fe7533f0",
-    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "afc4868b04efad82430439e7daec0d6bc5f0b83af0f3c0aee7646f1474aa2c39"
+    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "fe38f584ccc4654a704b21dfc421684f756faa7efdcbbe5e93ef3b36fbbacec0",
+    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "1e71929bd31610a9856ae8197b1021c9953f6afc3a054b4c5ff407f83013aa73"
   }
 }
