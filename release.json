@@ -1,16 +1,47 @@
 {
-  "version": "0.4.13",
-  "built_date": "2026-10-09",
+  "version": "0.4.16",
+  "built_date": "2026-10-22",
   "source_commits": {
-    "smart-gateway": "23d1f1e92c867f826b2fa2b91bd384a4834bdd75",
-    "vicaria-contracts": "6f10c0f8fbb96b6fcc019a422b12f594841adab2"
+    "smart-gateway": "07779d8cfb543cc9b0334d7c0dd76b653da1316c",
+    "vicaria-contracts": "26c082daafbbd032efe18db4bb94fda19e39ea17"
   },
+  "source_date_epoch": 1792708738,
   "capture_schema": "cb.session_event.v7",
+  "source_main": "bd710ce4934e74c74cbe915190ad15578a386da2",
+  "feature_heads": {
+    "107": "a69bb30232a31e568ce2b09cfc453f3c8df66acc",
+    "108": "6ad387498929a7a5ea4b15bb69fc6dcd4bf7bcd7",
+    "109": "2382b4404db0a3573604fd206883ae03655a687e"
+  },
+  "required_server": {
+    "pr": 295,
+    "head": "2f1ba8222a40ba9d24960efaa6e14ab81fc8b42a"
+  },
+  "publication_requires": [
+    "Jeff review of this exact release candidate",
+    "Server change live",
+    "James release approval"
+  ],
+  "validation": {
+    "source_tests": 554,
+    "lint_and_format": "PASS",
+    "two_builds_byte_identical": true,
+    "source_python_files_checked": 114,
+    "native_loopback_request": true,
+    "native_undo_exact": true,
+    "installed_http_configured_apply_undo": true,
+    "hosted_clean_profile_walk": "pending after release; user approves device codes",
+    "installed_wheel_tests": 168
+  },
   "sha256": {
-    "plugins/vicaria/.claude-plugin/plugin.json": "12ea708d58624763c9b36dc772d986ba2a6234ee4abd9dd1a98e1e641c03b023",
-    "plugins/vicaria/.codex-plugin/plugin.json": "34e526ba9517fe7cd0a9ce910b11a6e85551fbd9161177d57afe5648d9eca7b2",
+    ".agents/plugins/marketplace.json": "dbed4bcc8046bd151ee8e09eded180eead996120749607568653adeca5eb25a6",
+    ".claude-plugin/marketplace.json": "f1df0026f35fb495457d1422089acb84d81da24ed8916a4fe5a6fc6bbba437f4",
+    "README.md": "f5073e83720ec144bd8ad2ef9059061979860421ac76ec317928b463800799af",
+    "plugins/vicaria/.claude-plugin/plugin.json": "7bca136e6de99008b9f632b593961a77d05a12a1d6dde39138a32088d0f9c53e",
+    "plugins/vicaria/.codex-plugin/plugin.json": "84f3e8c0c8f90c3416a303935feaa22f6bdbefe8b8bf12d7d026547a40876ef0",
     "plugins/vicaria/bin/runtime.sh": "82c90e551e276fcb90c2bf58235c4703cda58a8fa958638e0129c885037b4b63",
-    "plugins/vicaria/bin/vc-capture": "24cf4634bc81407a43b3a58651b17d8b1fae43aeede38317d6b079aff4cbb1f9",
+    "plugins/vicaria/bin/vc-capture": "0aebda39492a7a7105532c9a2c594c21b62d2f190610733e0b9d26da9eb10603",
+    "plugins/vicaria/commands/apply.md": "d1106331cf01ebb1e0fbbdfc6cf7946093c5de51deba2d259241b4b9c3668c09",
     "plugins/vicaria/commands/connect.md": "7b3b48f9685854ebae3fa0584d813a082c074d03ab4ede0312710e9ae206b44f",
     "plugins/vicaria/commands/feedback.md": "4dd0fce2cf44ecfea012437654e52e73d03b17abe842b49e3b8c2e794ee14c7e",
     "plugins/vicaria/commands/no.md": "5e68f951021b11fc909cc4ea40f373f938c4a32d22498a792470a584196aa172",
@@ -22,8 +53,9 @@
     "plugins/vicaria/hooks/codex.json": "d7a749ee808528c47fb6928af1741534141d2b14a2bac1d95f1656c517aa9e83",
     "plugins/vicaria/hooks/hooks.json": "383f4e81e5798bc911d6d354b555791464d091ab65802c4289ff8edc019d6d18",
     "plugins/vicaria/server": "7d5b894a27392be04373dbd7d1ac2d5629eab8beb146849a4295205735434e23",
+    "plugins/vicaria/wheels/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
     "plugins/vicaria/wheels/idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
-    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "4ea1fbbff4bee173cd6c8b4e3cfc05d9abc44e99760971e90e31c94394f0389b",
-    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "818a1fcd093f20ba335cbbbb990047e454d0174029048d2e60e4982479c37c33"
+    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "74f8a2683448fac638afb926b1a435d914806b69ad5c27b98ea86633fe7533f0",
+    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "afc4868b04efad82430439e7daec0d6bc5f0b83af0f3c0aee7646f1474aa2c39"
   }
 }
