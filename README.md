@@ -80,7 +80,7 @@ claude plugin update vicaria@vicaria --scope user
 claude plugin list
 ```
 
-Check that Vicaria is version **0.4.17** or newer, fully quit and reopen Claude
+Check that Vicaria is version **0.4.18** or newer, fully quit and reopen Claude
 Desktop, then start a new **Code → Local** session and run `/vicaria:connect`.
 Use the Code tab, not a regular Chat or Cowork conversation.
 
@@ -118,12 +118,19 @@ same repair before upload. A confirmed document refusal is retained locally with
 its receipt so valid events can continue. Existing connections are kept. Backlog
 uploads still need later hooks and remain limited by server response times.
 
+Version 0.4.18 speeds up automatic backlog uploads by reading the oldest 500 queued
+events per background pass and reducing the minimum pause between requests from
+five seconds to one. Requests still contain at most ten events. Claude Code also
+recognizes the effort and lesson a session received after apply, so those settings
+are not suggested again. End-of-session and command-line flushes keep their full
+queue behavior. Headless-session handoff and update notices are deferred.
+
 ## Release and scope
 
 This package is built by
 [smart-gateway](https://github.com/vicaria-ai/smart-gateway)'s
 `tools/build_plugin_marketplace.py`. Both harnesses use the bundled Python
-wheels; each bundle selects its own immutable runtime. `release.json` records the source commits and hashes of the 0.4.17 package, built on 2026-10-23.
+wheels; each bundle selects its own immutable runtime. `release.json` records the source commits and hashes of the 0.4.18 package, built on 2026-10-23.
 This release emits `cb.session_event.v7`.
 
 Both harnesses request configuration suggestions through their existing device connection while collecting. A supported response may propose model, effort and a working lesson. Configured test arms are labeled **configured**; they are not evidence-backed recommendations. An unchanged or refused decision does not authorize a settings change, and a policy refusal is displayed with the allowed models.
