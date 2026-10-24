@@ -1,35 +1,34 @@
 {
-  "version": "0.4.18",
-  "built_date": "2026-10-23",
+  "version": "0.4.19",
+  "built_date": "2026-10-24",
   "source_commits": {
-    "smart-gateway": "a6d6420ecf309119ec0ec886884dfead2dffdbe3",
+    "smart-gateway": "631237cd80f7e034fd65aeea0bf31c15871b5ce9",
     "vicaria-contracts": "26c082daafbbd032efe18db4bb94fda19e39ea17"
   },
-  "cleared_main": "a562ccf8f84a02f5567da51fd406ca7b77e2e628",
-  "source_date_epoch": 1792817219,
+  "cleared_main": "5beccd20dbaf32703f93a40a7c4e180de314be90",
+  "source_date_epoch": 1792827094,
   "capture_schema": "cb.session_event.v7",
   "feature_heads": {
-    "114": "e4354d50b36feafe6bc025135378899609da3c88",
-    "115": "63036b428ae2fcf6234e79ac1f1ae7c78fa31f88"
+    "117": "6230c27db04709aaf786e6a032c2b75c14a3d75f"
   },
   "publication_requires": [
-    "James conditional ship 0.4.18 approval (recorded)",
+    "James ship 0.4.19 approval",
     "Jeff exact-package check"
   ],
   "validation": {
     "two_builds_byte_identical": true,
     "wheel_source_files_checked": 185,
     "plugin_source_files_checked": 15,
-    "installed_wheel_checks_passed": 558,
-    "source_layout_checks_passed": 2,
+    "installed_wheel_checks_passed": 443,
+    "CHAIN_SECONDS": 900,
     "live_backlog_drain_verified": false
   },
   "sha256": {
     ".agents/plugins/marketplace.json": "dbed4bcc8046bd151ee8e09eded180eead996120749607568653adeca5eb25a6",
-    ".claude-plugin/marketplace.json": "f80ef4cff00ba655c0997af0bead53bd9797f2de75c5a91092e3437a5fee6673",
-    "README.md": "4cdd9e52a20ab568abf227bfc22140a3c800828accc3b84ecd1fe2f3a2c62bc4",
-    "plugins/vicaria/.claude-plugin/plugin.json": "e902ed377f7c4500dbee22d7145e76dc5c6b5b9210478b256f279915d5d1f562",
-    "plugins/vicaria/.codex-plugin/plugin.json": "c504fb00439c8a170d5e8fbfc619bfb1f6d0d0c55e0c77bb9b8c6756f0712832",
+    ".claude-plugin/marketplace.json": "040c2c4ed45b679968072a1505d786ebddcb1b839e088ef371e5a6713c2e616e",
+    "README.md": "5b1fc8f2abce8bf9afb137e1c56933802b827384a42acbe39d3cd0a2b88e2e1b",
+    "plugins/vicaria/.claude-plugin/plugin.json": "fe01b32707d7dfd65f59b3e7f69ac787d213a6584f3194e795b8a4bfcfc3fcfc",
+    "plugins/vicaria/.codex-plugin/plugin.json": "38b2af3d9f42f75cd163a39d0e1a1dcd01ef9af46100b840c5a038680f794359",
     "plugins/vicaria/bin/runtime.sh": "82c90e551e276fcb90c2bf58235c4703cda58a8fa958638e0129c885037b4b63",
     "plugins/vicaria/bin/vc-capture": "0aebda39492a7a7105532c9a2c594c21b62d2f190610733e0b9d26da9eb10603",
     "plugins/vicaria/commands/apply.md": "d1106331cf01ebb1e0fbbdfc6cf7946093c5de51deba2d259241b4b9c3668c09",
@@ -46,7 +45,7 @@
     "plugins/vicaria/server": "7d5b894a27392be04373dbd7d1ac2d5629eab8beb146849a4295205735434e23",
     "plugins/vicaria/wheels/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
     "plugins/vicaria/wheels/idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
-    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "a61095ce0f27e84061c36f7099b7bc36d6df6629fabac5b49a659756a9179e11",
-    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "d56285b9ba1709e32198aa569e7aa50c49ebeabb7a683f2598ec4ddb02815a3b"
+    "plugins/vicaria/wheels/smart_gateway-0.1.0a1-py3-none-any.whl": "41640e74f714f952521a6c357c8e14fcdae24dfb9f4d38128bf218fa6f7e1a82",
+    "plugins/vicaria/wheels/vicaria_contracts-0.1.0-py3-none-any.whl": "41202ca99819f520b3b4a9982d5f9e3f834ebb8e53451428742514c5ee372a5a"
   }
 }

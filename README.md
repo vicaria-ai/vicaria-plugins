@@ -80,7 +80,7 @@ claude plugin update vicaria@vicaria --scope user
 claude plugin list
 ```
 
-Check that Vicaria is version **0.4.18** or newer, fully quit and reopen Claude
+Check that Vicaria is version **0.4.19** or newer, fully quit and reopen Claude
 Desktop, then start a new **Code → Local** session and run `/vicaria:connect`.
 Use the Code tab, not a regular Chat or Cowork conversation.
 
@@ -125,12 +125,18 @@ recognizes the effort and lesson a session received after apply, so those settin
 are not suggested again. End-of-session and command-line flushes keep their full
 queue behavior. Headless-session handoff and update notices are deferred.
 
+Version 0.4.19 keeps a cancelled session-end upload from leaving a synthetic
+failure that delays later uploads. A background pass that runs out of time while
+the service is accepting events can continue with another pass after its cooldown,
+for up to 15 minutes from launch. Failures, opt-out and session-end priority still
+stop the chain. Actual backlog drain depends on upload time and incoming volume.
+
 ## Release and scope
 
 This package is built by
 [smart-gateway](https://github.com/vicaria-ai/smart-gateway)'s
 `tools/build_plugin_marketplace.py`. Both harnesses use the bundled Python
-wheels; each bundle selects its own immutable runtime. `release.json` records the source commits and hashes of the 0.4.18 package, built on 2026-10-23.
+wheels; each bundle selects its own immutable runtime. `release.json` records the source commits and hashes of the 0.4.19 package, built on 2026-10-24.
 This release emits `cb.session_event.v7`.
 
 Both harnesses request configuration suggestions through their existing device connection while collecting. A supported response may propose model, effort and a working lesson. Configured test arms are labeled **configured**; they are not evidence-backed recommendations. An unchanged or refused decision does not authorize a settings change, and a policy refusal is displayed with the allowed models.
